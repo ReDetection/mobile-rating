@@ -13,7 +13,7 @@
     config.redisPort = config.redisPort || 6379;
     config.redisHost = config.redisHost || '127.0.0.1';
 
-    config.minRate = config.minRate || 0;
+    config.minRate = config.minRate || 1;
     config.maxRate = config.maxRate || 5;
 
     var redisClient = redis.createClient(config.redisPort, config.redisHost);
@@ -38,9 +38,18 @@
         req.on('end', function () {
             var status = 200,
                 checkParams = function (data) {
+                    /**
+                     * Params must contain:
+                     * - deviceId: string
+                     * - appVersion: string
+                     * - rating: integer
+                     *
+                     * Params may contain:
+                     * - feedback: string
+                     */
                     return data.deviceId.length
                         && data.appVersion.length
-                        && data.appVersion.length < 11
+                        && data.appVersion.length <= 10
                         && data.rating >= config.minRate
                         && data.rating <= config.maxRate;
                 };
