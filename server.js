@@ -36,10 +36,18 @@
         });
 
         req.on('end', function () {
-            var status = 200;
+            var status = 200,
+                checkParams = function (data) {
+                    return data.deviceId.length
+                        && data.appVersion.length
+                        && data.appVersion.length < 11
+                        && data.rating >= config.minRate
+                        && data.rating <= config.maxRate;
+                };
+
             try {
                 var data = url.parse('http://host?' + rawData, true) || {query: {}};
-                if (data.query.deviceId.length && data.query.rating >= config.minRate && data.query.rating <= config.maxRate) {
+                if (checkParams(data.query)) {
                     var now = new Date(),
                         m = now.getMonth() + 1,
                         key = [
@@ -50,6 +58,7 @@
                             now.getUTCMinutes(),
                             now.getUTCSeconds(),
                             now.getUTCMilliseconds(),
+                            data.query.appVersion,
                             sha1(data.query.deviceId)
                         ].join('-');
                     try {
