@@ -37,6 +37,26 @@
 
         req.on('end', function () {
             var status = 200,
+                zeroPad = function (value, length) {
+                    value = value.toString();
+                    while (value.length < length) {
+                        value = '0' + value;
+                    }
+                    return value;
+                },
+                createKey = function (date, data) {
+                    return [
+                        date.getFullYear(),
+                        zeroPad(date.getMonth() + 1, 2),
+                        zeroPad(date.getDate(), 2),
+                        zeroPad(date.getUTCHours(), 2),
+                        zeroPad(date.getUTCMinutes(), 2),
+                        zeroPad(date.getUTCSeconds(), 2),
+                        zeroPad(date.getUTCMilliseconds(), 3),
+                        data.appVersion,
+                        sha1(data.deviceId)
+                    ].join('-');
+                },
                 checkParams = function (data) {
                     /**
                      * Params must contain:
@@ -57,22 +77,10 @@
             try {
                 var data = url.parse('http://host?' + rawData, true) || {query: {}};
                 if (checkParams(data.query)) {
-                    var now = new Date(),
-                        m = now.getMonth() + 1,
-                        key = [
-                            now.getFullYear(),
-                            (m < 10 ? '0' : '') + m,
-                            now.getDate(),
-                            now.getUTCHours(),
-                            now.getUTCMinutes(),
-                            now.getUTCSeconds(),
-                            now.getUTCMilliseconds(),
-                            data.query.appVersion,
-                            sha1(data.query.deviceId)
-                        ].join('-');
+                    var now = new Date();
                     try {
                         redisClient.set(
-                            key,
+                            createKey(now, data.query),
                             JSON.stringify(_.extend(data.query, {timestamp: now.toUTCString()}))
                         );
                     } catch (e) {
