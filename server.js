@@ -13,7 +13,7 @@
     config.redisPort = config.redisPort || 6379;
     config.redisHost = config.redisHost || '127.0.0.1';
 
-    config.minRate = config.minRate || 1;
+    config.minRate = config.minRate || 0;
     config.maxRate = config.maxRate || 5;
 
     var redisClient = redis.createClient(config.redisPort, config.redisHost);
